@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+curl \
+	--fail \
+	--header "X-Intent: Watchdog" \
+	"http://localhost:${LOCAL_PORT:-5000}/api/health"
+
+
+
+# vim: tabstop=4:softtabstop=4:shiftwidth=4:noexpandtab

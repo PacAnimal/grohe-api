@@ -1,0 +1,7 @@
+# local build system
+/.arch-amd64
+/build
+/syncbuild
+
+# IDE specific things
+/dotnet/.idea/

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+_scriptname="launch"
+set -u
+set -e
+
+unset ASPNETCORE_HTTP_PORTS
+exec su-exec app:app ./Application
