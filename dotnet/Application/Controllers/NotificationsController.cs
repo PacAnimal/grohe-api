@@ -24,7 +24,7 @@ public class NotificationsController(IApiClientLockQueue apiClientLockQueue) : C
     
     [HttpGet("next/{lastUnixTime:long}")]
     [ProducesResponseType(typeof(ApiNotification), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> GetNextNotification(long lastUnixTime, long? locationId, bool markAsRead = false, bool delete = false)
     {
         await using var apiClientLock = await apiClientLockQueue.GetLock();
@@ -32,7 +32,7 @@ public class NotificationsController(IApiClientLockQueue apiClientLockQueue) : C
 
         var notifications = await apiClient.GetNotifications(locationId);
         var next = notifications.Values.OrderBy(n => n.Timestamp).FirstOrDefault(n => n.Timestamp.ToUnixTime() > lastUnixTime);
-        if (next == null) return NotFound();
+        if (next == null) return NoContent();
         if (delete)
         {
             await apiClient.DeleteNotification(next.Id);
@@ -70,6 +70,7 @@ public class NotificationsController(IApiClientLockQueue apiClientLockQueue) : C
         public string Location { get; init; }
         public string Message { get; init; }
         public bool IsRead { get; init; }
+        public string OneLiner => $"{Appliance}: {Message}";
         // ReSharper restore UnusedAutoPropertyAccessor.Local
     }
 
