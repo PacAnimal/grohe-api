@@ -2,6 +2,7 @@
 /.arch-amd64
 /build
 /syncbuild
+/dh-token
 
 # IDE specific things
 /dotnet/.idea/
