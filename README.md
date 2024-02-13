@@ -23,7 +23,7 @@ It's using the standard web requests of the advanced flows, with basic authentic
 * Using <a href="https://homey.app/en-us/app/com.arjankranenburg.virtual/Virtual-Devices/">“Virtual Devices”</a> to create a switch to control the valve of the Grohe Sense (it’s a “remote → switch”) in Virtual Devices
 * Polling the status of the valve every 5 Minutes, in case it changed from elsewhere
 
-<a href="images/homey-valve.png"><img src="images/homey-valve.png" height="500" alt="Screenshot" /></a>
+<a href="images/homey-valve.png"><img src="images/homey-valve.png" alt="Screenshot" /></a>
 
 #### Valve follows house alarm
 * If the house alarm is Armed (we’re away, or it would be “partial armed”), it waits for the washing machine and dishwasher to stop running, then closes the valve
