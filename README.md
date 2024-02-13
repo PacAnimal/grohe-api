@@ -5,6 +5,11 @@ A C# implementation of the Grohe Sense API, exposing a Swagger / Swashbuckle web
 
 <a href="images/swagger.png"><img src="images/swagger.png" height="500" alt="Screenshot" /></a>
 
+## Warning
+This project is based on decompiling the Grohe Sense app for Android and may break at any time if Grohe change their API.
+
+Make sure to star this project if you use it, to follow future updates in the case of API changes.
+
 ## Implemented features
 * Turning on and off the water valves of SenseGuard
 * Snoozing a SenseGuard so it doesn't interfere with sprinklers or washing machines in 'eco' mode
