@@ -17,10 +17,10 @@ This was mainly written with the intent to further integrate it with the Homey s
 ### Example homey usage
 In the following screenshots, the API is being used with Homey.
 
-It's using the standard web requests of the advanced flows, with basic authentication in the headers. The content of the header string is the entire header, for simplicity, for example ```Authorization: Basic c2VjcmV0OnNlY3JldA==``` for username 'secret' and password 'secret'.
+It's using the standard web requests of the advanced flows, with basic authentication in the headers. The content of the header string is the entire header, for simplicity, for example ```Authorization: Basic c2VjcmV0OnNlY3JldA==``` for the username 'secret' and password 'secret'.
 
 #### "Smart" home
-* Using <a href="https://homey.app/en-us/app/com.arjankranenburg.virtual/Virtual-Devices/">“Virtual Devices”</a> to create a switch to control the valve of the Grohe Sense (it’s a “remote → switch”) in Virtual Devices
+* Using <a href="https://homey.app/en-us/app/com.arjankranenburg.virtual/Virtual-Devices/">“Virtual Devices”</a> to create a switch to control the valve of the Grohe Sense (it’s a “Remote → Switch”) in Virtual Devices
 * Polling the status of the valve every 5 Minutes, in case it changed from elsewhere
 
 <a href="images/homey-valve.png"><img src="images/homey-valve.png" alt="Screenshot" /></a>
