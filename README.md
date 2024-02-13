@@ -25,18 +25,22 @@ It's using the standard web requests of the advanced flows, with basic authentic
 * If the house alarm is Armed (we’re away, or it would be “partial armed”), it waits for the washing machine and dishwasher to stop running, then closes the valve
 * When the house alarm is no longer armed, the valve is turned on, but only if it was turned off by Homey
 * While the washing machine runs, keep snoozing the SenseGuard for 4 hours at a time, so it doesn’t trigger in the middle of the night due to the washing machine’s “eco” mode, which draws very little water over 7-8 hours.
+
 <a href="images/homey-example.png"><img src="images/homey-example.png" height="500" alt="Screenshot" /></a>
 
 #### Notifications
 * Using the notifications/next endpoint to fetch all the notifications available in the Grohe app, storing the timestamp of the last seen notification in Homey
 * Optionally deleting or marking notifications as read once Homey has grabbed them
+
 <a href="images/homey-notifications.png"><img src="images/homey-notifications.png" alt="Screenshot" /></a>
 
 #### Maintenance
 * Using the maintenance endpoint to check once a day if there are devices with low battery or that haven't reported
 * Configurable limits for both, and easy to parse JSON for Homey
+
 <a href="images/homey-device_warnings.png"><img src="images/homey-device_warnings.png" alt="Screenshot" /></a>
 
 ## Contributing
 Feedback and testing is very welcome on this project, and pull requests doubly so.
+
 Give it a star if you use it? :)
