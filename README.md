@@ -3,7 +3,7 @@
 # grohe-api
 A C# implementation of the Grohe Sense API, exposing a Swagger / Swashbuckle web interface for easier integration with home automation systems and similar.
 
-<a href="swagger.png"><img src="images/swagger.png" height="500" alt="Screenshot" /></a>
+<a href="images/swagger.png"><img src="images/swagger.png" height="500" alt="Screenshot" /></a>
 
 ## Implemented features
 * Turning on and off the water valves of SenseGuard
