@@ -35,7 +35,6 @@ public interface IApiClient
 
 public class ApiClient : IApiClient
 {
-    private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
     private readonly IConfiguration _config;
     private readonly ILogger<ApiClient> _log;
     private readonly IMemoryCache _cache;
@@ -143,7 +142,7 @@ public class ApiClient : IApiClient
                 await RefreshTokenIfNecessary();
                 return (await _apiClient.GetFromJsonAsync<List<Location>>("locations")).ToDictionary(l => l.Id, l => l);
             },
-            _cacheDuration
+            Constants.CacheDuration
         );
 
     public async Task<Dictionary<string, BaseAppliance>> GetAppliances() =>
@@ -197,13 +196,13 @@ public class ApiClient : IApiClient
 
                 return appliances;
             },
-            _cacheDuration
+            Constants.CacheDuration
         );
 
 
     private async Task<Dictionary<string, Notification>> GetNotifications() =>
         await _cache.GetOrRefreshAsync(
-            nameof(GetAppliances),
+            nameof(GetNotifications),
             async () =>
             {
                 _log.LogInformation("Getting notifications");
@@ -247,7 +246,7 @@ public class ApiClient : IApiClient
 
                 return notifications;
             },
-            _cacheDuration
+            Constants.NotificationCacheDuration
         );
 
     public async Task<Dictionary<string, Notification>> GetNotifications(long? locationId) => locationId == null
@@ -280,7 +279,7 @@ public class ApiClient : IApiClient
 
             return await _apiClient.GetFromJsonAsync<SenseDetails>($"locations/{appliance.Location.Id}/rooms/{appliance.Room.Id}/appliances/{appliance.Id}/details");
         },
-        _cacheDuration
+        Constants.CacheDuration
     );
 
     public Task<SenseGuardDetails> GetSenseGuardDetails(string applianceId) => _cache.GetOrRefreshAsync(
@@ -299,7 +298,7 @@ public class ApiClient : IApiClient
 
             return await _apiClient.GetFromJsonAsync<SenseGuardDetails>($"locations/{appliance.Location.Id}/rooms/{appliance.Room.Id}/appliances/{appliance.Id}/details");
         },
-        _cacheDuration
+        Constants.CacheDuration
     );
 
     public Task<AggregateData> GetAggregatedData(string applianceId, Aggregation aggregation, DateTime from, DateTime to) => _cache.GetOrRefreshAsync(
@@ -322,7 +321,7 @@ public class ApiClient : IApiClient
             
             return await _apiClient.GetFromJsonAsync<AggregateData>($"locations/{appliance.Location.Id}/rooms/{appliance.Room.Id}/appliances/{appliance.Id}/data/aggregated?groupBy={aggregationString}&from={fromString}&to={toString}");
         },
-        _cacheDuration
+        Constants.CacheDuration
     );
 
     public async Task<bool> SnoozeGuard(string applianceId, long minutes)
