@@ -61,8 +61,7 @@ public class ApiClient : IApiClient
             BaseAddress = (Constants.ApiBaseAddress + "/v3/iot/").ParseUri()
         };
         _authClient.DefaultRequestHeaders.Add("Accept", "application/json");
-        _authClient.DefaultRequestHeaders.Add("User-Agent",
-            "Dalvik/2.1.0 (Linux; U; Android 12; SM-A426N Build/SP1A.210812.016)");
+        _authClient.DefaultRequestHeaders.Add("User-Agent", "Dalvik/2.1.0 (Linux; U; Android 12; SM-A426N Build/SP1A.210812.016)");
 
         // client for general api usage, with a bunch of default headers, masking as the app
         _apiClient = new HttpClient(handler)

@@ -16,7 +16,7 @@ public static class Extensions
                 : throw new ArgumentException($"Configuration value for {key} is empty");
     }
     
-    public static Uri ParseUri(this string s) => Uri.TryCreate(s, UriKind.Absolute, out var uri) ? uri : throw new ArgumentException( $"Attempting to parse invalid URI: {s}", nameof(s));
+    public static Uri ParseUri(this string s) => Uri.TryCreate(s, UriKind.Absolute, out var uri) ? uri : throw new ArgumentException($"Attempting to parse invalid URI: {s}", nameof(s));
     
     public static long ToUnixTime(this DateTime dateTime)
     {
