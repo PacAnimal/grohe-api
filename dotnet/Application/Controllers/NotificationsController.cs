@@ -85,4 +85,23 @@ public class NotificationsController(IApiClientLockQueue apiClientLockQueue) : C
         var success = await apiClient.DeleteNotification(notificationId);
         return success ? Ok() : StatusCode(StatusCodes.Status503ServiceUnavailable, "Failed to delete notification");
     }
+
+    [HttpDelete("all")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)] // HTTP 503 for failure
+    public async Task<IActionResult> DeleteAllNotifications(long? locationId)
+    {
+        await using var apiClientLock = await apiClientLockQueue.GetLock();
+        var apiClient = apiClientLock.ApiClient;
+        
+        var notifications = await apiClient.GetNotifications(locationId);
+        var success = true;
+        foreach (var notification in notifications.Values)
+        {
+            success &= await apiClient.DeleteNotification(notification.Id);
+            await Task.Delay(TimeSpan.FromMilliseconds(500)); // don't hammer the server too hard
+        }
+
+        return success ? Ok() : StatusCode(StatusCodes.Status503ServiceUnavailable, "Failed to delete one or more notifications");
+    }
 }

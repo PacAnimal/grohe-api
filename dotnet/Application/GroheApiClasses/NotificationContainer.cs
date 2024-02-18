@@ -10,7 +10,7 @@ public class NotificationContainer
     public string ContinuationToken { get; init; }
 
     [JsonPropertyName("remaining_notifications")]
-    public long RemainingNotifications { get; init; }
+    public long? RemainingNotifications { get; init; }
 
     [JsonPropertyName("notifications")]
     public List<Notification> Notifications { get; init; }
