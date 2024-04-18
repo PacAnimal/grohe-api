@@ -3,6 +3,3 @@
 /build
 /syncbuild
 /dh-token
-
-# IDE specific things
-/dotnet/.idea/

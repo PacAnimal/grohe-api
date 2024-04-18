@@ -41,6 +41,12 @@ public class SenseGuardAppliance : BaseAppliance
 
     [JsonPropertyName("snoozed_until")]
     public DateTime? SnoozedUntil { get; init; }
+    
+    [JsonIgnore]
+    public bool IsSnoozed => SnoozedUntil?.ToUniversalTime() > DateTime.UtcNow;
+    
+    [JsonIgnore]
+    public long SnoozeSeconds => IsSnoozed ? Math.Max((long)(SnoozedUntil! - DateTime.UtcNow).Value.TotalSeconds, 0) : 0;
 
     public class ConfigInfo
     {

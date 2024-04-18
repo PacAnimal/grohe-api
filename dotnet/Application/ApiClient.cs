@@ -336,10 +336,10 @@ public class ApiClient : IApiClient
                 return false;
             }
 
-            if (senseGuard.SnoozedUntil != null)
+            if (senseGuard.IsSnoozed)
             {
                 // already snoozed, so let's wake it up first, as that's what the app would have to do
-                _log.LogInformation("Appliance {ApplianceId} is already snoozed - waking it up first...", applianceId);
+                _log.LogInformation("Appliance {ApplianceId} is already snoozed, until {SnoozedUntil} - waking it up first...", applianceId, senseGuard.SnoozedUntil);
                 if (!await WakeGuard(applianceId))
                 {
                     _log.LogError("Failed to temporarily wake appliance {ApplianceId}", applianceId);
@@ -366,7 +366,7 @@ public class ApiClient : IApiClient
             {
                 FlushCache();
                 senseGuard = (await GetAppliances<SenseGuardAppliance>())[applianceId];
-                if (senseGuard.SnoozedUntil != null)
+                if (senseGuard.IsSnoozed)
                 {
                     _log.LogInformation("Appliance {ApplianceId} is snoozing until {SnoozedUntil}", applianceId, senseGuard.SnoozedUntil);
                     return true;
@@ -412,7 +412,7 @@ public class ApiClient : IApiClient
             {
                 FlushCache();
                 senseGuard = (await GetAppliances<SenseGuardAppliance>())[applianceId];
-                if (senseGuard.SnoozedUntil == null)
+                if (!senseGuard.IsSnoozed)
                 {
                     _log.LogInformation("Appliance {ApplianceId} is awake", applianceId);
                     return true;

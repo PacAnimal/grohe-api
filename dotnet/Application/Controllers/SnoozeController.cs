@@ -66,14 +66,12 @@ public class SnoozeController(IApiClientLockQueue apiClientLockQueue) : Controll
     
     private static SnoozeState GetApiModel(SenseGuardAppliance valve)
     {
-        var snoozedUntil = valve.SnoozedUntil?.ToUniversalTime();
-        var snoozing = valve.SnoozedUntil > DateTime.UtcNow;
         return new SnoozeState
         {
             Id = valve.Id,
-            Snoozing = snoozing,
-            SnoozeSeconds = snoozing ? Math.Max((long)(snoozedUntil! - DateTime.UtcNow).Value.TotalSeconds, 0) : 0,
-            SnoozeUntil = snoozing ? snoozedUntil : null
+            Snoozing = valve.IsSnoozed,
+            SnoozeSeconds = valve.SnoozeSeconds,
+            SnoozeUntil = valve.IsSnoozed ? valve.SnoozedUntil : null
         };
     }
     

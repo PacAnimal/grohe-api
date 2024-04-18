@@ -38,7 +38,7 @@ public class BaseAppliance
     // the serializer for BaseAppliance
     public static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
-        Converters = { new BaseApplianceConverter<BaseAppliance>() }
+        Converters = { new BaseApplianceConverter() }
     };
 
     // converting status to a dictionary
@@ -48,9 +48,9 @@ public class BaseAppliance
     }
 }
 
-public class BaseApplianceConverter<T> : JsonConverter<T> where T : BaseAppliance, new()
+public class BaseApplianceConverter : JsonConverter<BaseAppliance>
 {
-    public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override BaseAppliance Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         using var document = JsonDocument.ParseValue(ref reader);
         var jsonObject = document.RootElement;
@@ -59,7 +59,7 @@ public class BaseApplianceConverter<T> : JsonConverter<T> where T : BaseApplianc
         var typeValue = jsonObject.GetProperty("type").GetInt32();
         var type = Enum.IsDefined(typeof(ApplianceType), typeValue) ? (ApplianceType)typeValue : ApplianceType.Unknown;
         
-        var baseAppliance = JsonSerializer.Deserialize<T>(jsonObject.GetRawText());
+        var baseAppliance = JsonSerializer.Deserialize<BaseAppliance>(jsonObject.GetRawText());
         baseAppliance.TypeValue = typeValue;
         baseAppliance.Type = type;
         baseAppliance.Json = json;
@@ -67,7 +67,7 @@ public class BaseApplianceConverter<T> : JsonConverter<T> where T : BaseApplianc
         return baseAppliance;
     }
 
-    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, BaseAppliance value, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }
