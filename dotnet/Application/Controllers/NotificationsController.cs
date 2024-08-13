@@ -1,5 +1,6 @@
 ﻿using Application.GroheApiClasses;
 using Application.Utils;
+using Cathedral.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 // ReSharper disable InvertIf

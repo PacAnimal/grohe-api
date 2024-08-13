@@ -1,4 +1,6 @@
-﻿namespace Application.Utils;
+﻿using Cathedral.Utils;
+
+namespace Application.Utils;
 
 public interface IApiClientLockQueue
 {
@@ -21,34 +23,17 @@ public interface IApiClientLockQueue
 
 public class ApiClientLockQueue(IApiClient apiClient) : IApiClientLockQueue
 {
-    private readonly Queue<TaskCompletionSource> _queue = new();
+    private readonly OrderedSemaphore _apiClientLock = new();
 
     public async Task<IApiClientLockQueue.Lock> GetLock()
     {
-        var driverLock = new IApiClientLockQueue.Lock(apiClient, ReleaseLock);
-        var tcs = new TaskCompletionSource();
-        lock (_queue)
-        {
-            _queue.Enqueue(tcs);
-            if (_queue.Peek() == tcs)
-            {
-                tcs.SetResult();
-            }
-        }
-        await tcs.Task;
-        return driverLock;
+        await _apiClientLock.WaitAsync();
+        return new IApiClientLockQueue.Lock(apiClient, ReleaseLock);
     }
 
     private async Task ReleaseLock()
     {
         await Task.Yield();
-        lock (_queue)
-        {
-            _queue.Dequeue();
-            if (_queue.TryPeek(out var tcs))
-            {
-                tcs.SetResult();
-            }
-        }
+        _apiClientLock.Release();
     }
 }

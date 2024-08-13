@@ -1,21 +1,17 @@
-﻿using System.Net;
-using System.Text.Json.Serialization;
-using Application;
+﻿using Application;
 using Application.Auth;
 using Application.Utils;
+using Cathedral.Config;
+using Cathedral.Extensions;
+using Cathedral.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 // configuration
-var config = (IConfiguration)new ConfigurationBuilder()
-    .AddEnvironmentVariables()
-    .Build();
+var config = Env.Config;
 
 // build test?
 var buildtest = args.Contains("buildtest");
@@ -25,12 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
 // swagger stuff
-services.AddMvcCore().AddJsonOptions(opts =>
-{
-    opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-    opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-});
+services.AddMvcCore().AddSaneJsonOptions();
 services.AddEndpointsApiExplorer();
 services.AddControllers();
 services.AddSwaggerGen(c =>
@@ -56,28 +47,18 @@ services.AddSwaggerGen(c =>
     c.OperationFilter<AuthorizeOperationFilter>();
 });
 
-// lower case routes please
-services.Configure<RouteOptions>(ro => ro.LowercaseUrls = true);
-
 // services
+services.AddEnvironmentConfiguration();
 services.AddMemoryCache();
 services.AddSingleton<IApiClient, ApiClient>();
 services.AddSingleton<IApiClientLockQueue, ApiClientLockQueue>();
 services.AddHostedService<NotificationPollerService>();
 
 // set loglevels to make things a bit quieter
-services.AddLogging(log =>
-{
-    log.AddSimpleConsole(o => {
-        o.IncludeScopes = false;
-        o.SingleLine = true;
-    });
-    log.AddFilter("Microsoft.Hosting.Lifetime", LogLevel.Warning);
-    log.AddFilter("Microsoft.AspNetCore.DataProtection", LogLevel.Warning);
-    log.AddFilter("Microsoft.AspNetCore.Routing", LogLevel.Warning);
-    log.AddFilter("Microsoft.AspNetCore.Mvc", LogLevel.Warning);
-    log.AddFilter("Microsoft.AspNetCore.StaticFiles", LogLevel.Warning);
-});
+services.AddSereneConsoleLogging();
+
+// lower case routes please
+services.UseLowerCaseRoutes();
 
 // data protection, or lack thereof
 services.AddDataProtection().PersistKeysToNowhere();
@@ -87,7 +68,7 @@ services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationScheme
 services.AddAuthorization();
 
 // set port number
-builder.WebHost.ConfigureKestrel(o => o.Listen(IPAddress.IPv6Any, int.Parse(config.GetString("LOCAL_PORT", "5000"))));
+builder.SetKestrelPort(int.Parse(config.GetString("LOCAL_PORT", "5000")));
 
 // build it
 var app = builder.Build();
