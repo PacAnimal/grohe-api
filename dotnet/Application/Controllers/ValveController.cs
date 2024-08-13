@@ -1,5 +1,6 @@
 ﻿using Application.GroheApiClasses;
 using Application.Utils;
+using Cathedral.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 // ReSharper disable InvertIf
@@ -9,14 +10,14 @@ namespace Application.Controllers;
 // api controller that lets you get the current alarm state
 [ApiController]
 [Route("api/[controller]")]
-public class ValveController(IApiClientLockQueue apiClientLockQueue) : Controller
+public class ValveController(OrderedSemaphore<IApiClient> apiClientSemaphore) : Controller
 {
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ValveState>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetValveState(long? locationId = null, string applianceId = null)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var appliances = await apiClient.GetAppliances<SenseGuardAppliance>(locationId, applianceId);
         if (appliances.Count == 0) return NotFound();
@@ -40,8 +41,8 @@ public class ValveController(IApiClientLockQueue apiClientLockQueue) : Controlle
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetValveState(bool open, long? locationId = null, string applianceId = null)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var appliances = await apiClient.GetAppliances<SenseGuardAppliance>(locationId, applianceId);
         if (appliances.Count == 0) return NotFound("No valves found");
@@ -86,8 +87,8 @@ public class ValveController(IApiClientLockQueue apiClientLockQueue) : Controlle
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSingleValveState()
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var appliances = await apiClient.GetAppliances<SenseGuardAppliance>();
         switch (appliances.Count)
@@ -114,8 +115,8 @@ public class ValveController(IApiClientLockQueue apiClientLockQueue) : Controlle
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> SetSingleValveState(bool open)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var appliances = await apiClient.GetAppliances<SenseGuardAppliance>();
         switch (appliances.Count)

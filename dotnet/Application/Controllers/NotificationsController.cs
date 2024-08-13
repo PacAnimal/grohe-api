@@ -1,6 +1,7 @@
 ﻿using Application.GroheApiClasses;
 using Application.Utils;
 using Cathedral.Extensions;
+using Cathedral.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 // ReSharper disable InvertIf
@@ -10,14 +11,14 @@ namespace Application.Controllers;
 // api controller that lets you get the current alarm state
 [ApiController]
 [Route("api/[controller]")]
-public class NotificationsController(IApiClientLockQueue apiClientLockQueue) : Controller
+public class NotificationsController(OrderedSemaphore<IApiClient> apiClientSemaphore) : Controller
 {
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ApiNotification>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetNotifications(long? locationId = null)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var notifications = await apiClient.GetNotifications(locationId);
         return Json(notifications.Values.OrderByDescending(n => n.Timestamp).Select(GetApiModel));
@@ -28,8 +29,8 @@ public class NotificationsController(IApiClientLockQueue apiClientLockQueue) : C
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> GetNextNotification(long lastUnixTime, long? locationId, bool markAsRead = false, bool delete = false)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var notifications = await apiClient.GetNotifications(locationId);
         var next = notifications.Values.OrderBy(n => n.Timestamp).FirstOrDefault(n => n.Timestamp.ToUnixTime() > lastUnixTime);
@@ -80,8 +81,8 @@ public class NotificationsController(IApiClientLockQueue apiClientLockQueue) : C
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)] // HTTP 503 for failure
     public async Task<IActionResult> DeleteNotification(string notificationId)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var success = await apiClient.DeleteNotification(notificationId);
         return success ? Ok() : StatusCode(StatusCodes.Status503ServiceUnavailable, "Failed to delete notification");
@@ -92,8 +93,8 @@ public class NotificationsController(IApiClientLockQueue apiClientLockQueue) : C
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)] // HTTP 503 for failure
     public async Task<IActionResult> DeleteAllNotifications(long? locationId)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
         
         var notifications = await apiClient.GetNotifications(locationId);
         var success = true;

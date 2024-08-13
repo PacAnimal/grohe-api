@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using Application.GroheApiClasses;
 using Application.Utils;
+using Cathedral.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 // ReSharper disable UnusedAutoPropertyAccessor.Global
@@ -9,7 +10,7 @@ namespace Application.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class DataController(IApiClientLockQueue apiClientLockQueue) : Controller
+public class DataController(OrderedSemaphore<IApiClient> apiClientSemaphore) : Controller
 {
     [HttpGet("aggregated/{applianceId}/{aggregation}")]
     [ProducesResponseType(typeof(AggregatedData), StatusCodes.Status200OK)]
@@ -19,8 +20,8 @@ public class DataController(IApiClientLockQueue apiClientLockQueue) : Controller
         if (from == DateTime.MinValue) return BadRequest("From is not set");
         if (to == DateTime.MinValue) return BadRequest("To is not set");
         
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
         
         if (!(await apiClient.GetAppliances()).TryGetValue(applianceId, out var appliance)) return NotFound("Appliance not found");
 

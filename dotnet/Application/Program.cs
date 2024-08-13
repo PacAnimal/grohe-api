@@ -51,7 +51,7 @@ services.AddSwaggerGen(c =>
 services.AddEnvironmentConfiguration();
 services.AddMemoryCache();
 services.AddSingleton<IApiClient, ApiClient>();
-services.AddSingleton<IApiClientLockQueue, ApiClientLockQueue>();
+services.AddSingleton<OrderedSemaphore<IApiClient>>();
 services.AddHostedService<NotificationPollerService>();
 
 // set loglevels to make things a bit quieter

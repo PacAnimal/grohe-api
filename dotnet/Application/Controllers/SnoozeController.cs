@@ -1,5 +1,6 @@
 ﻿using Application.GroheApiClasses;
 using Application.Utils;
+using Cathedral.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,15 +9,15 @@ namespace Application.Controllers;
 // api controller that lets you get the current alarm state
 [ApiController]
 [Route("api/[controller]")]
-public class SnoozeController(IApiClientLockQueue apiClientLockQueue) : Controller
+public class SnoozeController(OrderedSemaphore<IApiClient> apiClientSemaphore) : Controller
 {
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<SnoozeState>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSnoozeState(long? locationId = null, string applianceId = null)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var appliances = await apiClient.GetAppliances<SenseGuardAppliance>(locationId, applianceId);
         if (appliances.Count == 0) return NotFound();
@@ -30,8 +31,8 @@ public class SnoozeController(IApiClientLockQueue apiClientLockQueue) : Controll
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetSnoozeState(long minutes, long? locationId = null, string applianceId = null)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var appliances = await apiClient.GetAppliances<SenseGuardAppliance>(locationId, applianceId);
         if (appliances.Count == 0) return NotFound("No valves found");
@@ -92,8 +93,8 @@ public class SnoozeController(IApiClientLockQueue apiClientLockQueue) : Controll
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSingleSnoozeState()
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var appliances = await apiClient.GetAppliances<SenseGuardAppliance>();
         return appliances.Count switch
@@ -111,8 +112,8 @@ public class SnoozeController(IApiClientLockQueue apiClientLockQueue) : Controll
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> SetSingleSnoozeState(long minutes)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var appliances = await apiClient.GetAppliances<SenseGuardAppliance>();
         switch (appliances.Count)

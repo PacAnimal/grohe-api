@@ -1,10 +1,10 @@
-﻿using Application.Utils;
+﻿using Cathedral.Utils;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Application;
 
-public class NotificationPollerService(IApiClientLockQueue apiClientLockQueue, ILogger<NotificationPollerService> log) : IHostedService, IDisposable
+public class NotificationPollerService(OrderedSemaphore<IApiClient> apiClientSemaphore, ILogger<NotificationPollerService> log) : IHostedService, IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private string _latestNotificationId;
@@ -22,8 +22,8 @@ public class NotificationPollerService(IApiClientLockQueue apiClientLockQueue, I
         {
             try
             {
-                await using var apiClientLock = await apiClientLockQueue.GetLock();
-                var apiClient = apiClientLock.ApiClient;
+                using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+                var apiClient = apiClientLock.Value;
                 var latestNotification = await apiClient.GetLatestNotificationId();
                 if (latestNotification == _latestNotificationId) continue;
                 _latestNotificationId = latestNotification;

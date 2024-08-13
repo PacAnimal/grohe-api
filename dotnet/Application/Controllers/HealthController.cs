@@ -1,4 +1,4 @@
-﻿using Application.Utils;
+﻿using Cathedral.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,15 +8,15 @@ namespace Application.Controllers;
 [ApiController]
 [AllowAnonymous]
 [Route("api/[controller]")]
-public class HealthController(IApiClientLockQueue apiClientLockQueue) : Controller
+public class HealthController(OrderedSemaphore<IApiClient> apiClientSemaphore) : Controller
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)] // HTTP 503 for timeout
     public async Task<IActionResult> GetHealth()
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var applianceCount = 0;
         try

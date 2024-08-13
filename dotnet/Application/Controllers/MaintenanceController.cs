@@ -1,5 +1,6 @@
 ﻿using Application.GroheApiClasses;
 using Application.Utils;
+using Cathedral.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,14 +9,14 @@ namespace Application.Controllers;
 // api controller that lets you get the current alarm state
 [ApiController]
 [Route("api/[controller]")]
-public class MaintenanceController(IApiClientLockQueue apiClientLockQueue) : Controller
+public class MaintenanceController(OrderedSemaphore<IApiClient> apiClientSemaphore) : Controller
 {
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<DeviceState>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMaintenanceState(long? locationId = null, string applianceId = null, long? batteryWarningLevel = null, long? seenOffsetWarningHours = null)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var appliances = await apiClient.GetAppliances<BaseAppliance>(locationId, applianceId);
         if (appliances.Count == 0) return NotFound();
@@ -39,8 +40,8 @@ public class MaintenanceController(IApiClientLockQueue apiClientLockQueue) : Con
     [ProducesResponseType(typeof(DeviceStateCombined), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCombinedMaintenanceState(long? locationId = null, string applianceId = null, long? batteryWarningLevel = null, long? seenOffsetWarningHours = null)
     {
-        await using var apiClientLock = await apiClientLockQueue.GetLock();
-        var apiClient = apiClientLock.ApiClient;
+        using var apiClientLock = await apiClientSemaphore.WaitForDisposable();
+        var apiClient = apiClientLock.Value;
 
         var appliances = await apiClient.GetAppliances<BaseAppliance>(locationId, applianceId);
         if (appliances.Count == 0) return NotFound();
