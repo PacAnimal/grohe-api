@@ -1,5 +1,5 @@
 ﻿using Application.GroheApiClasses;
-using Application.Utils;
+using Cathedral.API.Swagger;
 using Cathedral.Extensions;
 using Cathedral.Utils;
 using Microsoft.AspNetCore.Http;

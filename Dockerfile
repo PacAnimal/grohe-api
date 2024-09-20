@@ -1,8 +1,10 @@
 ﻿# base
+#FROM registry:1337/external/dotnet-runtime AS base # can't use internal image cache with github
 FROM mcr.microsoft.com/dotnet/runtime:8.0-bookworm-slim AS base
 WORKDIR /app
 
 # build
+#FROM registry:1337/external/dotnet-sdk AS build # can't use internal image cache with github
 FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
 WORKDIR /src
 

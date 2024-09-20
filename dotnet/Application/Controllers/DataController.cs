@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 using Application.GroheApiClasses;
-using Application.Utils;
+using Cathedral.API.Swagger;
 using Cathedral.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

@@ -1,10 +1,9 @@
 ﻿using Application;
-using Application.Auth;
-using Application.Utils;
+using Cathedral.API.BasicAuth;
+using Cathedral.API.Swagger;
 using Cathedral.Config;
 using Cathedral.Extensions;
 using Cathedral.Utils;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -29,22 +28,10 @@ services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "GroheAPI", Version = "v1" });
     
     // custom type names for swagger
-    c.CustomSchemaIds(type =>
-    {
-        var customAttributes = type.GetCustomAttributes(typeof(JsonTypeNameAttribute), true);
-        return customAttributes.Length > 0 ? ((JsonTypeNameAttribute)customAttributes[0]).SchemaId : type.Name;
-    });
+    c.UseJsonTypeNameAttribute();
     
     // make swagger aware of basic auth
-    c.AddSecurityDefinition("basic", new OpenApiSecurityScheme
-    {
-        Type = SecuritySchemeType.Http,
-        Scheme = "basic",
-        Description = "Basic authentication header",
-        In = ParameterLocation.Header,
-        Name = "Authorization"
-    });
-    c.OperationFilter<AuthorizeOperationFilter>();
+    c.UseBasicAuth();
 });
 
 // services
@@ -64,8 +51,7 @@ services.UseLowerCaseRoutes();
 services.AddDataProtection().PersistKeysToNowhere();
 
 // add basic auth
-services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuthentication", null);
-services.AddAuthorization();
+services.AddBasicAuth();
 
 // set port number
 builder.SetKestrelPort(int.Parse(config.GetString("LOCAL_PORT", "5000")));
@@ -78,21 +64,15 @@ app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "GroheAPI v1"));
 
 // add redirect from root to swagger
-app.MapGet("/", context =>
-{
-    context.Response.Redirect("/swagger");
-    return Task.CompletedTask;
-});
+app.RedirectToSwagger();
 
 // map controllers, with authorization (this is what makes them work, not just be visible in swagger)
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers().RequireAuthorization();
+app.MapControllersWithBasicAuth();
 
 // create a scope and initialize
 using (var scope = app.Services.CreateScope())
 {
-    var log = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var log = scope.GetLogger<Program>();
     var apiClient = scope.ServiceProvider.GetRequiredService<IApiClient>() as ApiClient ?? throw new Exception("ApiClient not found or unexpected type");
     
     // Hello World!
